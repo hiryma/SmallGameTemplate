@@ -21,7 +21,7 @@ SpriteAtlas:
       crunchedCompression: 0
       sRGB: 1
     platformSettings:
-    - serializedVersion: 2
+    - serializedVersion: 3
       m_BuildTarget: DefaultTexturePlatform
       m_MaxTextureSize: 2048
       m_ResizeAlgorithm: 0
@@ -32,7 +32,8 @@ SpriteAtlas:
       m_AllowsAlphaSplitting: 0
       m_Overridden: 0
       m_AndroidETC2FallbackOverride: 0
-    - serializedVersion: 2
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 1
+    - serializedVersion: 3
       m_BuildTarget: iPhone
       m_MaxTextureSize: 2048
       m_ResizeAlgorithm: 0
@@ -43,6 +44,7 @@ SpriteAtlas:
       m_AllowsAlphaSplitting: 0
       m_Overridden: 0
       m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 1
     packingSettings:
       serializedVersion: 2
       padding: 8
@@ -53,56 +55,12 @@ SpriteAtlas:
     variantMultiplier: 1
     packables:
     - {fileID: 102900000, guid: dcded92aca45c4bdba5b88e764a86443, type: 3}
-    totalSpriteSurfaceArea: 919023
+    totalSpriteSurfaceArea: 1
     bindAsDefault: 1
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
-  - {fileID: 21300000, guid: 076f5a7112f0243f0bb7097a4cb5dbe5, type: 3}
-  - {fileID: 21300000, guid: 775822b1249b041f68cfe46e76c8faef, type: 3}
-  - {fileID: 21300000, guid: 18bde2c1069bd4ce4b38bc417cf99182, type: 3}
-  - {fileID: 21300000, guid: fd1ded22485ea43c690b0932a650f9cd, type: 3}
-  - {fileID: 21300000, guid: 235128928265e4ec0bbaf0e05387bbd3, type: 3}
-  - {fileID: 21300000, guid: 5cb59bb27d7ed4210bbe9a399cecb7de, type: 3}
   - {fileID: 21300000, guid: babcbcf40514d4c01b4a2fe0fc2c455f, type: 3}
-  - {fileID: 21300000, guid: 8a6a98154c707463f9d38c3545bb82ca, type: 3}
-  - {fileID: 21300000, guid: 09b3a365bfcb4486fbd4ab0afedbc77f, type: 3}
-  - {fileID: 21300000, guid: ace461a627efc4ca598ee74bbdcc1863, type: 3}
-  - {fileID: 21300000, guid: 6d5ddcf7286004f0b91902ac135c34d0, type: 3}
-  - {fileID: 21300000, guid: 93d4db58010814163abc07e7b359cfea, type: 3}
-  - {fileID: 21300000, guid: 135e379870bce4d269dae53de9583546, type: 3}
-  - {fileID: 21300000, guid: 4c84f0dabb7a44554815b11b563e0849, type: 3}
-  - {fileID: 21300000, guid: 754cb1da58cab4cf5820bf0291f1c45a, type: 3}
-  - {fileID: 21300000, guid: 0692db7c3fc8d4ae4ae75593df7dab84, type: 3}
-  - {fileID: 21300000, guid: ed0272fcd789543debc844da69a55611, type: 3}
-  - {fileID: 21300000, guid: e2c8812da4e3c4149bf80ebd4eccb398, type: 3}
-  - {fileID: 21300000, guid: 6bc374edff4304ab59c0ea1316a82b96, type: 3}
-  - {fileID: 21300000, guid: 645f59fdc0e1c460c89f40280679b52e, type: 3}
-  - {fileID: 21300000, guid: 7671227e47d7e452ca9d1470ec65b7d8, type: 3}
-  - {fileID: 21300000, guid: 1ee204be5b2424e4eb3e3b04c95c207b, type: 3}
-  - {fileID: 21300000, guid: 974181cea06e642de806d712f3afcc17, type: 3}
   m_PackedSpriteNamesToIndex:
-  - continue_gauge
-  - damageFrame
-  - icon_star
-  - gauge_empty
-  - life_effect
-  - bnt_green_off
   - white1x1
-  - icon_continue_movie
-  - life_empty
-  - logo
-  - bnt_red_off
-  - bnt_red_on
-  - icon_star_empty
-  - bnt_blue_on
-  - gauge_full
-  - bnt_green_on
-  - icon_star_glow
-  - icon_goal
-  - gauge_frame
-  - bnt_blue_off
-  - life_full
-  - btn_yellow
-  - continue_gauge_base
   m_Tag: UiAtlas
   m_IsVariant: 0

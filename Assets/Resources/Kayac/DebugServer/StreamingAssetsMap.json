@@ -3,6 +3,12 @@
         {
             "name": "StreamingAssets",
             "firstFile": 0,
+            "firstChild": 1,
+            "nextBrother": -2147483648
+        },
+        {
+            "name": "StageData",
+            "firstFile": 2,
             "firstChild": -2147483648,
             "nextBrother": -2147483648
         }
@@ -14,6 +20,10 @@
         },
         {
             "name": "global_params.json",
+            "nextFile": -2147483648
+        },
+        {
+            "name": "stage_1.json",
             "nextFile": -2147483648
         }
     ]

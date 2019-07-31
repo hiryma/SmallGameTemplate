@@ -47,7 +47,7 @@ namespace Kayac
 			}
 			catch (System.Exception e)
 			{
-				Debug.LogError(e.Message);
+				Debug.LogWarning("failed to decrypt slack token.\n" + e.Message);
 			}
 			if (fromBytes != null)
 			{
