@@ -1,0 +1,20 @@
+{
+    "directories": [
+        {
+            "name": "StreamingAssets",
+            "firstFile": 0,
+            "firstChild": -2147483648,
+            "nextBrother": -2147483648
+        }
+    ],
+    "files": [
+        {
+            "name": ".DS_Store",
+            "nextFile": 1
+        },
+        {
+            "name": "global_params.json",
+            "nextFile": -2147483648
+        }
+    ]
+}

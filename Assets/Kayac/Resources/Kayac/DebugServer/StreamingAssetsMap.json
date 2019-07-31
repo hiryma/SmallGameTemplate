@@ -1,0 +1,58 @@
+{
+    "directories": [
+        {
+            "name": "StreamingAssets",
+            "firstFile": 0,
+            "firstChild": 1,
+            "nextBrother": -2147483648
+        },
+        {
+            "name": "StageData",
+            "firstFile": 2,
+            "firstChild": -2147483648,
+            "nextBrother": -2147483648
+        }
+    ],
+    "files": [
+        {
+            "name": ".DS_Store",
+            "nextFile": 1
+        },
+        {
+            "name": "global_params.json",
+            "nextFile": -2147483648
+        },
+        {
+            "name": "stage_1.json",
+            "nextFile": 3
+        },
+        {
+            "name": "stage_2.json",
+            "nextFile": 4
+        },
+        {
+            "name": "stage_3.json",
+            "nextFile": 5
+        },
+        {
+            "name": "stage_4.json",
+            "nextFile": 6
+        },
+        {
+            "name": "stage_5.json",
+            "nextFile": 7
+        },
+        {
+            "name": "stage_6.json",
+            "nextFile": 8
+        },
+        {
+            "name": "stage_7.json",
+            "nextFile": 9
+        },
+        {
+            "name": "stage_8.json",
+            "nextFile": -2147483648
+        }
+    ]
+}
