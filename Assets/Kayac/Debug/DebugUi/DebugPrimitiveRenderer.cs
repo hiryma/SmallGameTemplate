@@ -23,7 +23,8 @@ namespace Kayac
 			Wrap,
 		}
 		public const float DefaultLineSpacingRatio = 0f;
-		protected const int DefaultTriangleCapacity = 1024;
+		protected const int DefaultVertexCapacity = 1024;
+		protected const int DefaultIndexCapacity = 0;
 		const int InitialSubMeshCapacity = 16;
 
 		Shader _textShader;
@@ -35,7 +36,8 @@ namespace Kayac
 		int _textureShaderPropertyId;
 		protected Font _font;
 		protected int _vertexCount;
-		protected int _capacity;
+		protected int _vertexCapacity;
+		protected int _indexCapacity;
 		protected Vector2 _whiteUv;
 		protected Vector3[] _vertices;
 		protected int _indexCount;
@@ -57,6 +59,7 @@ namespace Kayac
 			public Texture texture;
 			public int indexStart;
 			public int indexCount;
+			public bool isLine;
 		}
 		List<SubMesh> _subMeshes;
 		// 毎フレーム0にリセットする。
@@ -64,6 +67,7 @@ namespace Kayac
 		Texture _texture;
 		MeshFilter _meshFilter;
 		MeshRenderer _meshRenderer;
+		bool _prevIsLine;
 
 		public Color32 color { get; set; }
 		protected Texture fontTexture { get; private set; }
@@ -74,7 +78,8 @@ namespace Kayac
 			Font font,
 			MeshRenderer meshRenderer,
 			MeshFilter meshFilter,
-			int capacity = DefaultTriangleCapacity)
+			int vertexCapacity = DefaultVertexCapacity,
+			int indexCapacity = DefaultIndexCapacity)
 		{
 			_textShader = textShader;
 			_texturedShader = texturedShader;
@@ -96,28 +101,33 @@ namespace Kayac
 			Font.textureRebuilt += OnFontTextureRebuilt;
 			_font.RequestCharactersInTexture("■");
 
-			SetCapacity(capacity);
+			SetCapacity(vertexCapacity, indexCapacity);
 
 			// 初回は手動
 			OnFontTextureRebuilt(_font);
 		}
 
-		public void SetCapacity(int triangleCapacity)
+		public void SetCapacity(int vertexCapacity, int indexCapacity)
 		{
-			_capacity = triangleCapacity * 3;
-			if (_capacity >= 0xffff)
+			_vertexCapacity = vertexCapacity;
+			if (indexCapacity <= 0)
 			{
-				Debug.LogWarning("triangleCapacity must be < 0xffff/3. clamped.");
-				_capacity = 0xffff;
+				indexCapacity = _vertexCapacity * 3;
 			}
-			_vertices = new Vector3[_capacity];
-			_uv = new Vector2[_capacity];
-			_colors = new Color32[_capacity];
-			_indices = new int[_capacity];
-			_temporaryVertices = new List<Vector3>(_capacity); // SetTriangles寸前に使う
-			_temporaryColors = new List<Color32>(_capacity); // SetTriangles寸前に使う
-			_temporaryUv = new List<Vector2>(_capacity); // SetTriangles寸前に使う
-			_temporaryIndices = new List<int>(_capacity); // SetTriangles寸前に使う
+			_indexCapacity = indexCapacity;
+			if (_indexCapacity >= 0xffff)
+			{
+				Debug.LogWarning("indexCapacity must be <= 0xffff. clamped.");
+				_indexCapacity = 0xffff;
+			}
+			_vertices = new Vector3[_vertexCapacity];
+			_uv = new Vector2[_vertexCapacity];
+			_colors = new Color32[_vertexCapacity];
+			_indices = new int[_indexCapacity];
+			_temporaryVertices = new List<Vector3>(_vertexCapacity); // SetTriangles寸前に使う
+			_temporaryColors = new List<Color32>(_vertexCapacity); // SetTriangles寸前に使う
+			_temporaryUv = new List<Vector2>(_vertexCapacity); // SetTriangles寸前に使う
+			_temporaryIndices = new List<int>(_indexCapacity); // SetTriangles寸前に使う
 			_vertexCount = 0;
 			_indexCount = 0; // すぐ足すことになる
 			_subMeshes = new List<SubMesh>();
@@ -142,7 +152,7 @@ namespace Kayac
 			{
 				_subMeshes[_subMeshCount - 1].FixIndexCount(_indexCount);
 				// 使用量が半分以下の場合、テンポラリにコピーしてから渡す
-				if (_vertexCount < (_capacity / 2)) // 閾値は研究が必要だが、とりあえず。
+				if (_vertexCount < (_vertexCapacity / 2)) // 閾値は研究が必要だが、とりあえず。
 				{
 					UnityEngine.Profiling.Profiler.BeginSample("DebugPrimitiveRenderer.UpdateMesh.FillTemporary");
 
@@ -189,7 +199,15 @@ namespace Kayac
 					_temporaryIndices.Clear();
 					var tmpI = new System.ArraySegment<int>(_indices, subMesh.indexStart, subMesh.indexCount);
 					_temporaryIndices.AddRange(tmpI);
-					_mesh.SetTriangles(_temporaryIndices, i, true);
+					if (subMesh.isLine)
+					{
+						// 馬鹿なArraySegmentを取れるバージョンがないだって!!!ラインはどうせそんなに呼ばないだろうから遅くても良しとする
+						_mesh.SetIndices(_temporaryIndices.ToArray(), MeshTopology.Lines, i, true);
+					}
+					else
+					{
+						_mesh.SetTriangles(_temporaryIndices, i, true);
+					}
 					_materialPropertyBlock.SetTexture(
 						_textureShaderPropertyId,
 						subMesh.texture);
@@ -204,6 +222,7 @@ namespace Kayac
 			// 毎フレーム白にリセット
 			color = new Color32(255, 255, 255, 255);
 			_subMeshCount = 0;
+			_prevIsLine = false;
 
 			// どうもおかしいので毎フレーム取ってみる。
 			CharacterInfo ch;
@@ -233,15 +252,10 @@ namespace Kayac
 
 		public void SetTexture(Texture texture)
 		{
-			if (_texture != texture)
-			{
-				// ここまででSubMeshを終わらせる
-				AddSubMesh(texture);
-				_texture = texture;
-			}
+			SetStates(texture, _prevIsLine);
 		}
 
-		void AddSubMesh(Texture texture, int minimumIndexCount = 0)
+		void AddSubMesh(Texture texture, bool isLine)
 		{
 			// 現インデクス数を記録
 			if (_subMeshCount > 0)
@@ -273,8 +287,25 @@ namespace Kayac
 				subMesh.material = _texturedMaterial;
 			}
 			subMesh.texture = texture;
+			subMesh.isLine = isLine;
 			_subMeshCount++;
-			_indexCount = 0;
+		}
+
+		protected void SetStates(Texture texture, bool isLine)
+		{
+			if ((_prevIsLine != isLine) || (_texture != texture))
+			{
+				AddSubMesh(texture, isLine);
+				_prevIsLine = isLine;
+				_texture = texture;
+			}
+		}
+
+		protected void AddLineIndices(int i0, int i1)
+		{
+			_indices[_indexCount + 0] = _vertexCount + i0;
+			_indices[_indexCount + 1] = _vertexCount + i1;
+			_indexCount += 2;
 		}
 
 		// 時計回りの相対頂点番号を3つ設定して三角形を生成
@@ -332,7 +363,7 @@ namespace Kayac
 			UnityEngine.Profiling.Profiler.BeginSample("DebugPrimitiveRenderer.AddTextNormalized");
 			int letterCount = text.Length;
 			_font.RequestCharactersInTexture(text);
-			SetTexture(fontTexture);
+			SetStates(fontTexture, isLine: false);
 			var verticesBegin = _vertexCount;
 
 			widthOut = heightOut = 0f;
@@ -408,7 +439,7 @@ namespace Kayac
 			ref Vector2 p, // 原点(Xは左端、Yは上端+Font.ascent)
 			ref CharacterInfo ch)
 		{
-			if (((_vertexCount + 4) > _capacity) || ((_indexCount + 6) > _capacity))
+			if (((_vertexCount + 4) > _vertexCapacity) || ((_indexCount + 6) > _indexCapacity))
 			{
 				return false;
 			}
@@ -468,17 +499,19 @@ namespace Kayac
 			}
 		}
 
-
-
-		// 以下未実装。箱だけ作っておく。数字の文字列化に伴うGC Alloc抹殺のため
-		public static void ToStringAsCharArray(out int writeCount, char[] dst, int dstPos, int value, int precision)
+		protected bool CheckCapacity(int vertexCount, int indexCount)
 		{
-			writeCount = 0;
-		}
-
-		public static void ToStringAsCharArray(out int writeCount, char[] dst, int dstPos, float value, int precision)
-		{
-			writeCount = 0;
+			if ((_vertexCount + vertexCount) > _vertexCapacity)
+			{
+	Debug.Log("A " + _vertexCapacity + " " + vertexCount);
+				return false;
+			}
+			if ((_indexCount + indexCount) > _indexCapacity)
+			{
+	Debug.Log("B " + _indexCapacity + " " + indexCount);
+				return false;
+			}
+			return true;
 		}
 	}
 }

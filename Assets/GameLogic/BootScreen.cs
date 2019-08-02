@@ -8,6 +8,7 @@ public class BootScreen : MonoBehaviour
 
 	public void ManualStart(Camera camera)
 	{
+Debug.Log("StartBootScr");
 		hideTimer = -float.MaxValue;
 		copyMaterial = new Material(logo.sharedMaterial);
 		copyMaterial.name = copyMaterial.name + "(Copy)";

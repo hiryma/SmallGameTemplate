@@ -15,7 +15,8 @@ namespace Kayac
 			Camera camera,
 			MeshRenderer meshRenderer,
 			MeshFilter meshFilter,
-			int capacity = DefaultTriangleCapacity) : base(textShader, texturedShader, font, meshRenderer, meshFilter, capacity)
+			int vertexCapacity = DefaultVertexCapacity,
+			int indexCapacity = DefaultIndexCapacity) : base(textShader, texturedShader, font, meshRenderer, meshFilter, vertexCapacity, indexCapacity)
 		{
 			_camera = camera;
 		}
@@ -35,14 +36,10 @@ namespace Kayac
 				vertexCount += 3;
 				indexCount += 3;
 			}
-			if (
-			((_vertexCount + vertexCount) > _capacity)
-			|| ((_indexCount + indexCount) > _capacity))
+			if (!CheckCapacity(vertexCount, indexCount))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			/*
 			両端をp0(x0,y0), p1(x1,y1)とし、
 			制御点を cp(xc,yc)とする2次ベジエ曲線を生成する。
@@ -88,6 +85,7 @@ namespace Kayac
 				_uv[i0] = _whiteUv;
 				_uv[i1] = _whiteUv;
 			}
+			SetStates(fontTexture, isLine: false);
 			// インデクス生成
 			for (int i = 0; i < division; i++)
 			{
@@ -373,12 +371,10 @@ namespace Kayac
 			int lineCount = ((div0 + 1) * (div1 + 1))
 				+ ((div1 + 1) * (div2 + 1))
 				+ ((div2 + 1) * (div0 + 1));
-			if (((_vertexCount + (lineCount * 4)) > _capacity)
-				|| ((_indexCount + (lineCount * 6)) > _capacity))
+			if (!CheckCapacity(lineCount * 4, lineCount * 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
 			var transform = _camera.gameObject.transform;
 			var diff = p - transform.position;
 			var normalVector0 = Vector3.Cross(diff, axis0);
@@ -397,6 +393,7 @@ namespace Kayac
 				_uv[_vertexCount + i] = _whiteUv;
 			}
 
+			SetStates(fontTexture, isLine: false);
 			// axis0
 			for (int i1 = 0; i1 <= div1; i1++)
 			{
@@ -472,12 +469,10 @@ namespace Kayac
 		{
 			// 線の本数
 			int lineCount = ((div0 + 1) * (div1 + 1));
-			if (((_vertexCount + (lineCount * 4)) > _capacity)
-				|| ((_indexCount + (lineCount * 6)) > _capacity))
+			if (!CheckCapacity(lineCount * 4, lineCount * 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
 			var transform = _camera.gameObject.transform;
 			var diff = p - transform.position;
 			var normalVector0 = axis0;
@@ -493,6 +488,7 @@ namespace Kayac
 				_uv[_vertexCount + i] = _whiteUv;
 			}
 
+			SetStates(fontTexture, isLine: false);
 			for (int i = 0; i <= div0; i++)
 			{
 				var a = p + (axis0 * ((float)i / (float)div0));
@@ -532,14 +528,10 @@ namespace Kayac
 			Vector3 p1,
 			Vector3 p2)
 		{
-			if (
-			((_vertexCount + 3) > _capacity)
-			|| ((_indexCount + 3) > _capacity))
+			if (!CheckCapacity(3, 3))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			_vertices[_vertexCount + 0] = p0;
 			_vertices[_vertexCount + 1] = p1;
 			_vertices[_vertexCount + 2] = p2;
@@ -549,6 +541,7 @@ namespace Kayac
 			_uv[_vertexCount + 0] = _whiteUv;
 			_uv[_vertexCount + 1] = _whiteUv;
 			_uv[_vertexCount + 2] = _whiteUv;
+			SetStates(fontTexture, isLine: false);
 			AddTriangleIndices(0, 1, 2);
 			_vertexCount += 3;
 			return true;
@@ -560,14 +553,10 @@ namespace Kayac
 			Vector3 v0,
 			Vector3 v1)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			// 時計回り
 			_vertices[_vertexCount + 0] = p;
 			_vertices[_vertexCount + 1] = p + v0;
@@ -579,6 +568,7 @@ namespace Kayac
 				_colors[_vertexCount + i] = color;
 				_uv[_vertexCount + i] = _whiteUv;
 			}
+			SetStates(fontTexture, isLine: false);
 			AddQuadIndices(0, 1, 2, 3);
 			_vertexCount += 4;
 			return true;
@@ -592,9 +582,7 @@ namespace Kayac
 			Vector3 v2,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + (8 * 6)) > _capacity)
-			|| ((_indexCount + (12 * 6)) > _capacity))
+			if (!CheckCapacity(8 * 6, 12 * 6))
 			{
 				return false;
 			}
@@ -617,14 +605,10 @@ namespace Kayac
 			Vector3 v1,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + 8) > _capacity)
-			|| ((_indexCount + 12) > _capacity))
+			if (!CheckCapacity(8, 12))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			// 時計回り
 			_vertices[_vertexCount + 0] = p;
 			_vertices[_vertexCount + 1] = p + v0;
@@ -643,6 +627,7 @@ namespace Kayac
 				_colors[_vertexCount + i] = color;
 				_uv[_vertexCount + i] = _whiteUv;
 			}
+			SetStates(fontTexture, isLine: false);
 			AddQuadIndices(0, 1, 5, 4);
 			AddQuadIndices(5, 1, 2, 6);
 			AddQuadIndices(7, 6, 2, 3);

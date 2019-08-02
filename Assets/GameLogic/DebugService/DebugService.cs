@@ -120,7 +120,7 @@ public class DebugService
 			var url = string.Format("http://{0}:{1}/", DebugServerUtil.GetLanIpAddress(), serverPort);
 			Application.OpenURL(url);
 		});
-		uiManager.enabled = false; // 初期状態は無効
+//		uiManager.enabled = false; // 初期状態は無効
 
 		server.RegisterRequestCallback("/", OnWebRequestRoot);
 		server.RegisterRequestCallback("/api/upload-file", OnWebRequestUploadFile);

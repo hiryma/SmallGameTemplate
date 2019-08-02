@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Kayac;
+using UnityEngine.EventSystems;
 
 
-public class GameSubScene : SubScene
+public class GameSubScene : SubScene, IPointerDownHandler, IPointerUpHandler
 {
 	[SerializeField] Canvas canvas;
 	[SerializeField] RectTransformScaler scaler;
@@ -50,6 +51,16 @@ public class GameSubScene : SubScene
 
 	public override void ManualStart(GameState gameState)
 	{
+		gameState.World.StartStage(stageData);
+		var ball = gameState.World.Ball;
+		var launcher = gameState.World.Launcher;
+		var pos = launcher.InitialPosition;
+		pos.y += ball.Radius;
+pos.x -= 1f;
+pos.y += 5f;
+Debug.Log(pos);
+		ball.Reset(pos);
+		ball.SetVisibility(true);
 		scaler.Apply();
 		Reset();
 	}
@@ -68,8 +79,14 @@ public class GameSubScene : SubScene
 	public override void ManualUpdate(out string nextSceneName, float deltaTime)
 	{
 		nextSceneName = null;
-		// 遷移判定
+		// ボール落ちたらとりあえずgameover
 		var world = gameState.World;
+		if (world.Ball.Position.y < -10f)
+		{
+			toGameover = true;
+		}
+
+		// 遷移判定
 		if (toGameover)
 		{
 			nextSceneName = "Title";
@@ -81,6 +98,20 @@ public class GameSubScene : SubScene
 		time += deltaTime;
 	}
 
+	public void OnPointerDown(PointerEventData data)
+	{
+		var world = gameState.World;
+		var launcher = world.Launcher;
+		launcher.Draw();
+		world.Flip();
+	}
+
+	public void OnPointerUp(PointerEventData data)
+	{
+		var launcher = gameState.World.Launcher;
+		launcher.Release();
+	}
+
 	// non public ------------------------
 	GameState gameState;
 	StageData stageData;
@@ -90,4 +121,6 @@ public class GameSubScene : SubScene
 	void Awake()
 	{
 	}
+
+
 }

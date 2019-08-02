@@ -19,7 +19,6 @@ public class Main : MonoBehaviour
 	[SerializeField] MeshFilter debugMeshFilter;
 	[SerializeField] Sprite debugTapMark;
 
-
 	GameState gameState;
 	SubScene subScene;
 	SubScene nextSubScene;

@@ -28,6 +28,9 @@ public class TitleSubScene : SubScene, IPointerClickHandler, IDragHandler, IEndD
 		canvas.worldCamera = gameState.World.CameraController.Camera;
 		world = gameState.World;
 		alphaAnim.Init(-0.4f, 0f, 16f, 0f);
+
+		// ステージロード判定ガン無視して社ロゴ消す
+		gameState.World.BootScreen.Hide();
 	}
 
 	public void OnPointerClick(PointerEventData dataUnused)

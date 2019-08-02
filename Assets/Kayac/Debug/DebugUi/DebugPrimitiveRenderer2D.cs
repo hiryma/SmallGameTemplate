@@ -16,7 +16,8 @@ namespace Kayac
 			Font font,
 			MeshRenderer meshRenderer,
 			MeshFilter meshFilter,
-			int capacity = DefaultTriangleCapacity) : base(textShader, texturedShader, font, meshRenderer, meshFilter, capacity)
+			int vertexCapacity = DefaultVertexCapacity,
+			int indexCapacity = DefaultIndexCapacity) : base(textShader, texturedShader, font, meshRenderer, meshFilter, vertexCapacity, indexCapacity)
 		{
 		}
 
@@ -30,9 +31,7 @@ namespace Kayac
 			float width,
 			int division)
 		{
-			if (
-			((_vertexCount + ((division + 1) * 2)) > _capacity)
-			|| ((_indexCount + (division * 6)) > _capacity))
+			if (!CheckCapacity((division + 1) * 2, division * 6))
 			{
 				return false;
 			}
@@ -101,13 +100,10 @@ namespace Kayac
 			float height,
 			float lineWidth = 1f)
 		{
-			if (
-			((_vertexCount + 8) > _capacity)
-			|| ((_indexCount + 24) > _capacity))
+			if (!CheckCapacity(8, 24))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
 
 			// 外側
 			float x0o = leftX;
@@ -136,6 +132,7 @@ namespace Kayac
 				_colors[_vertexCount + i] = color;
 			}
 
+			SetStates(fontTexture, isLine: false);
 			AddQuadIndices(0, 1, 5, 4);
 			AddQuadIndices(5, 1, 2, 6);
 			AddQuadIndices(7, 6, 2, 3);
@@ -150,19 +147,17 @@ namespace Kayac
 			float length,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
 
 			float halfWidth = lineWidth * 0.5f;
 			float x0 = leftX;
 			float x1 = leftX + length;
 			float y0 = y + halfWidth;
 			float y1 = y + halfWidth;
+			SetStates(fontTexture, isLine: false);
 			AddRectangleInternal(x0, x1, y0, y1);
 			return true;
 		}
@@ -173,19 +168,16 @@ namespace Kayac
 			float length,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			float halfWidth = lineWidth * 0.5f;
 			float x0 = x - halfWidth;
 			float x1 = x + halfWidth;
 			float y0 = topY;
 			float y1 = topY + length;
+			SetStates(fontTexture, isLine: false);
 			AddRectangleInternal(x0, x1, y0, y1);
 			return true;
 		}
@@ -196,13 +188,10 @@ namespace Kayac
 			float y,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + 2) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(2, 6))
 			{
 				return false;
 			}
-
 			var prev0 = _vertices[_vertexCount - 2];
 			var prev1 = _vertices[_vertexCount - 1];
 			Vector2 prev;
@@ -235,14 +224,10 @@ namespace Kayac
 			float y1,
 			float lineWidth)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			float tx = x1 - x0;
 			float ty = y1 - y0;
 			float nx = -ty;
@@ -261,8 +246,50 @@ namespace Kayac
 				_uv[_vertexCount + i] = _whiteUv;
 				_colors[_vertexCount + i] = color;
 			}
+			SetStates(fontTexture, isLine: false);
 			this.AddQuadIndices(0, 2, 3, 1);
 			_vertexCount += 4;
+			return true;
+		}
+
+		// AddLine1pxの直後に呼ばない限り動作は保証しない。
+		public bool ContinueLine1px(
+			float x,
+			float y)
+		{
+			if (!CheckCapacity(1, 2))
+			{
+				return false;
+			}
+			_vertices[_vertexCount] = new Vector3(x, y, 0f);
+			_uv[_vertexCount] = _whiteUv;
+			_colors[_vertexCount] = color;
+			this.AddLineIndices(-1, 0);
+			_vertexCount += 1;
+			return true;
+		}
+
+		public bool AddLine1px(
+			float x0,
+			float y0,
+			float x1,
+			float y1)
+		{
+			if (!CheckCapacity(2, 2))
+			{
+				return false;
+			}
+			_vertices[_vertexCount + 0] = new Vector3(x0, y0, 0f);
+			_vertices[_vertexCount + 1] = new Vector3(x1, y1, 0f);
+
+			for (int i = 0; i < 2; i++)
+			{
+				_uv[_vertexCount + i] = _whiteUv;
+				_colors[_vertexCount + i] = color;
+			}
+			SetStates(fontTexture, isLine: true);
+			this.AddLineIndices(0, 1);
+			_vertexCount += 2;
 			return true;
 		}
 
@@ -274,14 +301,10 @@ namespace Kayac
 			float x2,
 			float y2)
 		{
-			if (
-			((_vertexCount + 3) > _capacity)
-			|| ((_indexCount + 3) > _capacity))
+			if (!CheckCapacity(3, 3))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			_vertices[_vertexCount + 0] = new Vector3(x0, y0, 0f);
 			_vertices[_vertexCount + 1] = new Vector3(x1, y1, 0f);
 			_vertices[_vertexCount + 2] = new Vector3(x2, y2, 0f);
@@ -291,6 +314,7 @@ namespace Kayac
 				_uv[_vertexCount + i] = _whiteUv;
 				_colors[_vertexCount + i] = color;
 			}
+			SetStates(fontTexture, isLine: false);
 			AddTriangleIndices(0, 1, 2);
 			_vertexCount += 3;
 			return true;
@@ -305,14 +329,10 @@ namespace Kayac
 			float y2,
 			float lineWidth = 1f)
 		{
-			if (
-			((_vertexCount + 3) > _capacity)
-			|| ((_indexCount + 3) > _capacity))
+			if (!CheckCapacity(3, 3))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			// 重心算出
 			float gx = (x0 + x1 + x2) / 3f;
 			float gy = (y0 + y1 + y2) / 3f;
@@ -356,6 +376,7 @@ namespace Kayac
 				_uv[_vertexCount + i] = _whiteUv;
 				_colors[_vertexCount + i] = color;
 			}
+			SetStates(fontTexture, isLine: false);
 			AddQuadIndices(0, 1, 4, 3);
 			AddQuadIndices(1, 2, 5, 4);
 			AddQuadIndices(2, 0, 3, 5);
@@ -369,14 +390,11 @@ namespace Kayac
 			float width,
 			float height)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
+			SetStates(fontTexture, isLine: false);
 			AddRectangleInternal(leftX, leftX + width, topY, topY + height);
 			return true;
 		}
@@ -392,13 +410,10 @@ namespace Kayac
 			var indices = sprite.triangles;
 			int vertexCount = vertices.Length;
 			int indexCount = indices.Length;
-			if (
-			((_vertexCount + vertexCount) > _capacity)
-			|| ((_indexCount + indexCount) > _capacity))
+			if (!CheckCapacity(vertexCount, indexCount))
 			{
 				return false;
 			}
-			SetTexture(sprite.texture);
 
 			float scaleX = width / sprite.rect.width;
 			float scaleY = height / sprite.rect.height;
@@ -421,6 +436,7 @@ namespace Kayac
 				_colors[_vertexCount + i] = color;
 			}
 
+			SetStates(sprite.texture, isLine: false);
 			AddIndices(indices);
 			_vertexCount += vertexCount;
 			return true;
@@ -433,13 +449,10 @@ namespace Kayac
 			float height,
 			Texture texture)
 		{
-			if (
-			((_vertexCount + 4) > _capacity)
-			|| ((_indexCount + 6) > _capacity))
+			if (!CheckCapacity(4, 6))
 			{
 				return false;
 			}
-			SetTexture(texture);
 
 			// 頂点は左上から時計回り
 			var right = leftX + width;
@@ -458,6 +471,7 @@ namespace Kayac
 			{
 				_colors[_vertexCount + i] = color;
 			}
+			SetStates(texture, isLine: false);
 			AddQuadIndices(0, 1, 2, 3);
 			_vertexCount += 4;
 			return true;
@@ -475,14 +489,10 @@ namespace Kayac
 			int vertexCount = triangleCount + 1;
 			int indexCount = triangleCount * 3;
 
-			if (
-			((_vertexCount + vertexCount) > _capacity)
-			|| ((_indexCount + indexCount) > _capacity))
+			if (!CheckCapacity(vertexCount, indexCount))
 			{
 				return false;
 			}
-			SetTexture(fontTexture);
-
 			float thetaStep = Mathf.PI * 2f / div;
 			for (int i = 0; i < div; i++)
 			{
@@ -503,6 +513,7 @@ namespace Kayac
 				_colors[_vertexCount + i] = color;
 			}
 
+			SetStates(fontTexture, isLine: false);
 			for (int i = 0; i < (div - 1); i++)
 			{
 				AddTriangleIndices(div, i, i + 1);
