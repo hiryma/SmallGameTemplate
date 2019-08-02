@@ -12,6 +12,7 @@ public class World : MonoBehaviour
 	[SerializeField] Ball ball;
 	[SerializeField] Launcher launcher;
 	[SerializeField] Flipper flipperPrefab;
+	[SerializeField] Target targetPrefab;
 
 	[SerializeField, Header("Debug")] Shader debugTextShader;
 	[SerializeField] Shader debugTexturedShader;
@@ -27,6 +28,7 @@ public class World : MonoBehaviour
 	const string globalParamsPath = "global_params.json";
 	DebugPrimitiveRenderer2D debugRenderer;
 	Flipper[] flippers;
+	Target[] targets;
 
 	public IEnumerator CoLoad()
 	{
@@ -106,10 +108,24 @@ public class World : MonoBehaviour
 			}
 		}
 		flippers = new Flipper[stageData.flippers.Length];
-		for (int i = 0; i < stageData.flippers.Length; i++)
+		for (int i = 0; i < flippers.Length; i++)
 		{
 			flippers[i] = Instantiate(flipperPrefab, transform, false);
 			flippers[i].ManualStart(GlobalParams, stageData.flippers[i]);
+		}
+
+		if (targets != null)
+		{
+			foreach (var target in targets)
+			{
+				Destroy(target.gameObject);
+			}
+		}
+		targets = new Target[stageData.targets.Length];
+		for (int i = 0; i < targets.Length; i++)
+		{
+			targets[i] = Instantiate(targetPrefab, transform, false);
+			targets[i].ManualStart(stageData.targets[i]);
 		}
 	}
 
@@ -118,6 +134,21 @@ public class World : MonoBehaviour
 		foreach (var flipper in flippers)
 		{
 			flipper.Flip();
+		}
+	}
+
+	public bool TargetAlive
+	{
+		get
+		{
+			foreach (var target in targets)
+			{
+				if (target.Alive)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 
@@ -169,6 +200,13 @@ public class World : MonoBehaviour
 	void DrawDebug()
 	{
 		stageMesh.DrawDebug(debugRenderer);
+		if (targets != null)
+		{
+			foreach (var target in targets)
+			{
+				target.DrawDebug(debugRenderer);
+			}
+		}
 		debugRenderer.UpdateMesh();
 	}
 

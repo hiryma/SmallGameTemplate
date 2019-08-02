@@ -6,29 +6,7 @@ using Kayac;
 public class StageMesh : MonoBehaviour
 {
 	[SerializeField] PhysicsMaterial2D material;
-	class Line
-	{
-		public Line(Color32 color, int count)
-		{
-			this.color = color;
-			points = new Vector2[count];
-		}
-		public void SetPoint(int index, float x, float y)
-		{
-			points[index] = new Vector2(x, y);
-		}
-		public void DrawDebug(DebugPrimitiveRenderer2D renderer)
-		{
-			renderer.color = color;
-			renderer.AddLine1px(points[0].x, points[0].y, points[1].x, points[1].y);
-			for (int i = 2; i < points.Length; i++)
-			{
-				renderer.ContinueLine1px(points[i].x, points[i].y);
-			}
-		}
-		public Vector2[] points;
-		public Color32 color;
-	}
+
 	List<Line> lines;
 	EdgeCollider2D[] colliders;
 
@@ -49,7 +27,7 @@ public class StageMesh : MonoBehaviour
 
 	Line ReadLine(LineData data)
 	{
-		var line = new Line(new Color32(0, 255, 0, 255), data.points.Length);
+		var line = new Line(new Color32(0, 255, 0, 255), data.points.Length, loop: false);
 		for (int i = 0; i < data.points.Length; i++)
 		{
 			line.SetPoint(i, data.points[i].x, data.points[i].y);

@@ -8,7 +8,14 @@ using Kayac;
 public class StageData
 {
 	public FlipperParams[] flippers;
-	public ShapeData shape;
+	public TargetData[] targets;
+}
+
+[Serializable]
+public class TargetData
+{
+	public int life;
+	public PointData[] points;
 }
 
 [System.Serializable]

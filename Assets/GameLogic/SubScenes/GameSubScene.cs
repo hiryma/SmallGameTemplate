@@ -58,7 +58,6 @@ public class GameSubScene : SubScene, IPointerDownHandler, IPointerUpHandler
 		pos.y += ball.Radius;
 pos.x -= 1f;
 pos.y += 5f;
-Debug.Log(pos);
 		ball.Reset(pos);
 		ball.SetVisibility(true);
 		scaler.Apply();
@@ -86,12 +85,20 @@ Debug.Log(pos);
 			toGameover = true;
 		}
 
+		// クリア判定
+		bool cleared = false;
+		if (!world.TargetAlive)
+		{
+			cleared = true;
+		}
+
+
 		// 遷移判定
 		if (toGameover)
 		{
 			nextSceneName = "Title";
 		}
-		else if (Input.GetKeyDown(KeyCode.Q))
+		else if (cleared || Input.GetKeyDown(KeyCode.Q))
 		{
 			nextSceneName = "Result";
 		}
