@@ -16,7 +16,6 @@ public class Target : MonoBehaviour
 	public void ManualStart(TargetData data)
 	{
 		life = data.life;
-Debug.Log("Target Life=" + life);
 		line = new Line(new Color32(255, 128, 128, 255), data.points.Length, loop: true);
 		for (int i = 0; i < data.points.Length; i++)
 		{
@@ -30,6 +29,7 @@ Debug.Log("Target Life=" + life);
 		var collider = gameObject.AddComponent<EdgeCollider2D>();
 		collider.sharedMaterial = material;
 		collider.points = line.points;
+		collider.
 	}
 
 	void OnCollisionEnter2D(Collision2D collision)
